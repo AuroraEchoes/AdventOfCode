@@ -5,111 +5,87 @@ fn main() {
         match part.as_str() {
             "part1" => part_one(),
             "part2" => part_two(),
-            _ => panic!("Part unknown") 
+            _ => panic!("Unknown part!")
         }
     } else {
         println!("Did not supply part. Proceeding with part one.");
+        println!("Part 1:");
         part_one();
+        println!("Part 2:");
+        part_two();
     }
 }
 
 fn part_one() {
     let input = include_str!("../input.txt");
-    let sum: i32 = input
+    let sum: u32 = input
         .lines()
         .map(|l| l.chars()
-             .filter_map(|c| char_to_int(&c))
+             .filter_map(|c| c.to_digit(10))
              .collect::<Vec<_>>())
-        .map(|vec| {
-            let count = 10 * vec.first().unwrap() + vec.last().unwrap();
-            count
-        })
+        .map(|v| v.first().unwrap() * 10 + v.last().unwrap())
         .sum();
     println!("Sum: {:?}", sum);
-}
-
-fn char_to_int(c: &char) -> Option<i32> {
-    match c {
-        '0' => Some(0),
-        '1' => Some(1),
-        '2' => Some(2),
-        '3' => Some(3),
-        '4' => Some(4),
-        '5' => Some(5),
-        '6' => Some(6),
-        '7' => Some(7),
-        '8' => Some(8),
-        '9' => Some(9),
-        _ => None,
-    }
-}
-
-// To tidy... like hell
-fn word_to_char(acc: &str) -> Option<char> {
-    if ends_with(acc, "one") {
-        return Some('1');
-    }
-    if ends_with(acc, "two") {
-        return Some('2')
-    }
-    if ends_with(acc, "three") {
-        return Some('3')
-    }
-    if ends_with(acc, "four") {
-        return Some('4')
-    }
-    if ends_with(acc, "five") {
-        return Some('5')
-    }
-    if ends_with(acc, "six") {
-        return Some('6')
-    }
-    if ends_with(acc, "seven") {
-        return Some('7')
-    }
-    if ends_with(acc, "eight") {
-        return Some('8')
-    }
-    if ends_with(acc, "nine") {
-        return Some('9')
-    }
-    return None;
-}
-
-fn ends_with(string: &str, contains: &str) -> bool {
-    println!("{string}, {contains}");
-    if string.len() < contains.len() {
-        return false;
-    }
-    let cont_len = string.len() - contains.len();
-    let mut cont_string = String::new();
-    string
-        .char_indices()
-        .filter(|(i, _)| i >= &cont_len)
-        .for_each(|(_, c)| cont_string += c.to_string().as_str());
-
-    println!("{string}, {cont_string}");
-    return string == cont_string.as_str();
 }
 
 fn part_two() {
     let input = include_str!("../input.txt");
-    let mut acc = String::new();
-    let sum: i32 = input
+    let n: u32 = input
         .lines()
-        .map(|l| l.chars()
-             .filter_map(|c| {
-                acc = format!("{acc}{c}");
-                match word_to_char(acc.as_str()) {
-                    Some(c) => { acc = String::new(); char_to_int(&c) }
-                    None => char_to_int(&c)
-                }
-            })
-            .collect::<Vec<_>>())
-        .map(|vec| {
-            let count = 10 * vec.first().unwrap() + vec.last().unwrap();
-            count
-        })
+        .map(search_line)
+        .map(|v| v.first().unwrap() * 10 + v.last().unwrap())
         .sum();
-    println!("Sum: {:?}", sum);
+    println!("Sum: {n:?}")
 }
+
+fn word_to_int(acc: &str) -> Option<u32> {
+    if acc.contains("one") {
+        return Some(1);
+    }
+    if acc.contains("two") {
+        return Some(2);
+    }
+    if acc.contains("three") {
+        return Some(3);
+    }
+    if acc.contains("four") {
+        return Some(4);
+    }
+    if acc.contains("five") {
+        return Some(5);
+    }
+    if acc.contains("six") {
+        return Some(6);
+    }
+    if acc.contains("seven") {
+        return Some(7);
+    }
+    if acc.contains("eight") {
+        return Some(8);
+    }
+    if acc.contains("nine") {
+        return Some(9);
+    }
+    return None;
+}
+
+fn search_line(line: &str) -> Vec<u32> {
+    let mut buffer = String::new();
+    let mut digits = Vec::new();
+    for c in line.chars() {
+        buffer += c.to_string().as_str();
+        let char_digit = c.to_digit(10);
+        let buf_digit = word_to_int(buffer.as_str());
+        if let Some(d) = char_digit {
+            digits.push(d);
+            buffer = String::new();
+        }
+        if let Some(bc) = buf_digit {
+            digits.push(bc);
+            let residual_char = buffer.chars().last().unwrap();
+            buffer = residual_char.to_string();
+        }
+    }
+    return digits;
+}
+
